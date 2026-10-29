@@ -1,0 +1,100 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+@theme {
+  --color-obsidian: #050507;
+  --color-accent: var(--accent);
+  --font-syne: var(--font-syne), sans-serif;
+  --font-display: var(--font-syne), sans-serif;
+  --font-serif: var(--font-instrument-serif), serif;
+  --font-quote: var(--font-instrument-serif), serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+}
+
+:root {
+  --background: #050507;
+  --foreground: #F5F5F0;
+  --accent: #E11D48;
+  --accent-glow: rgba(225, 29, 72, 0.45);
+  --accent-rgb: 225, 29, 72;
+}
+
+/* Base Body Setup */
+html {
+  background-color: #050507;
+  color: #F5F5F0;
+  scroll-behavior: smooth;
+  cursor: auto !important;
+}
+
+body {
+  background-color: #050507;
+  color: #F5F5F0;
+  font-family: var(--font-jetbrains-mono), monospace;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Frosted Acrylic Glass (Matched to index.html demo) */
+.glass {
+  background: rgba(12, 12, 16, 0.62);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
+}
+
+.glass:hover {
+  border-color: var(--accent);
+  box-shadow: 0 12px 45px -10px var(--accent-glow);
+}
+
+/* Vinyl Grooves & Spin */
+.vinyl-grooves {
+  background: repeating-radial-gradient(
+    #0b0b0e 0px,
+    #0b0b0e 2px,
+    #1c1c24 3px,
+    #09090b 4px
+  );
+}
+
+/* Bass Thump Typography Scale */
+.thump-scale {
+  transition: transform 0.08s ease-out, text-shadow 0.08s ease-out;
+}
+
+/* Lenis Recommended Global Styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Accessibility First: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

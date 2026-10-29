@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EKAN$H // EXECUTIVE PRODUCED PORTFOLIO [LP]</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Syne (Brutalist Display), Instrument Serif (Editorial), JetBrains Mono (Liner Notes), Noto Sans Devanagari -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+Devanagari:wght@600;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --accent: #E11D48; /* Default: Seedhe Maut Crimson */
+      --accent-glow: rgba(225, 29, 72, 0.35);
+      --bg-secondary: #12090d;
+    }
+
+    body {
+      background-color: #070709;
+      color: #F5F5F0;
+      font-family: 'JetBrains Mono', monospace;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    .font-display { font-family: 'Syne', sans-serif; }
+    .font-serif-ed { font-family: 'Instrument Serif', serif; }
+    .font-devanagari { font-family: 'Noto Sans Devanagari', sans-serif; }
+
+    /* Film Grain Overlay */
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 90;
+      opacity: 0.055;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* Ambient Mesh Glow */
+    .ambient-orb {
+      background: radial-gradient(circle, var(--accent-glow) 0%, rgba(7,7,9,0) 70%);
+      transition: background 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Glassmorphism */
+    .glass-card {
+      background: rgba(18, 18, 24, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 10px 40px -10px var(--accent-glow);
+    }
+
+    /* Custom Cursor */
+    #cursor-dot, #cursor-ring, #cursor-ghost {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+    }
+    #cursor-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+    }
+    #cursor-ring {
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(245, 245, 240, 0.4);
+      transition: width 0.2s, height 0.2s, border-color 0.2s;
+    }
+    #cursor-ghost {
+      width: 28px;
+      height: 28px;
+      border: 1px dashed var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    /* Vinyl Spin & Crate Digging */
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .vinyl-spin {
+      animation: spinSlow 8s linear infinite;
+    }
+    .vinyl-grooves {
+      background: repeating-radial-gradient(
+        #111 0px,
+        #111 2px,
+        #1c1c21 3px,
+        #111 4px
+      );
+    }
+    .sleeve-wrap:hover .vinyl-disc {
+      transform: translateX(42%) rotate(140deg);
+    }
+    .vinyl-disc {
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Marquee Animation */
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .animate-marquee {
+      display: flex;
+      width: max-content;
+      animation: marquee 28s linear infinite;
+    }
+    .animate-marquee:hover {
+      animation-play-state: paused;
+    }
+
+    /* Genius Highlight */
+    .genius-bar {
+      background: linear-gradient(90deg, rgba(255,255,255,0.08) 0%, var(--accent-glow) 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 2px 6px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .genius-bar:hover {
+      background: var(--accent);
+      color: #070709;
+      font-weight: 700;
+    }
+
+    /* Rhyme Scheme Colors */
+    .rhyme-active .rhyme-a { background: rgba(225, 29, 72, 0.35); border-bottom: 2px solid #E11D48; padding: 0 4px; border-radius: 3px; }
+    .rhyme-active .rhyme-b { background: rgba(147, 51, 234, 0.35); border-bottom: 2px solid #9333EA; padding: 0 4px; border-radius: 3px; }
+    .rhyme-active .rhyme-c { background: rgba(34, 197, 94, 0.35); border-bottom: 2px solid #22C55E; padding: 0 4px; border-radius: 3px; }
+  </style>
+</head>
+<body class="selection:bg-rose-600 selection:text-white">
+
+  <!-- Film Grain -->
+  <div class="noise-overlay"></div>
+
+  <!-- Custom Cursor (Supports TBSM Dual-Cursor Mode) -->
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+  <div id="cursor-ghost"></div>
+
+  <!-- Dynamic Ambient Backlight Orbs -->
+  <div class="fixed top-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full ambient-orb pointer-events-none z-0"></div>
+  <div class="fixed bottom-[-20%] right-[-10%] w-[700px] h-[700px] rounded-full ambient-orb pointer-events-none z-0"></div>
+
+  <!-- ================= PRELOADER ("DROPPING THE NEEDLE") ================= -->
+  <div id="preloader" class="fixed inset-0 z-[100] bg-[#070709] flex flex-col justify-between p-8 md:p-14 transition-transform duration-1000 ease-[cubic-bezier(0.85,0,0.15,1)]">
+    <div class="flex justify-between items-center text-xs tracking-widest text-zinc-500">
+      <span>STUDIO SESSION // MASTERING BUILD</span>
+      <span>[PARENTAL ADVISORY: EXPLICIT ENGINEERING]</span>
+    </div>
+
+    <div class="my-auto max-w-3xl">
+      <p id="preloader-quote" class="font-serif-ed italic text-3xl md:text-5xl text-zinc-200 mb-6 transition-opacity duration-300">
+        "Kalam jale, dard dukhe, marham bane..."
+      </p>
+      <p id="preloader-artist" class="text-xs uppercase tracking-[0.25em] text-rose-500">
+        — SEEDHE MAUT // NAYAAB [00:00]
+      </p>
+    </div>
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-t border-zinc-800 pt-6">
+      <div>
+        <span class="text-xs text-zinc-500 block mb-1">TEMPO / LOAD SYNC</span>
+        <div class="font-display text-6xl md:text-8xl font-extrabold tracking-tighter">
+          <span id="bpm-counter">00</span> <span class="text-xl md:text-2xl font-normal text-zinc-500">BPM</span>
+        </div>
+      </div>
+
+      <button id="drop-needle-btn" onclick="enterStudio()" class="hidden px-7 py-4 bg-white text-black font-display font-bold text-sm tracking-wider uppercase hover:bg-rose-600 hover:text-white transition-all duration-300 shadow-lg">
+        Drop The Needle  needle_drop() →
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= TOP STUDIO HEADER ================= -->
+  <header class="fixed top-0 w-full z-40 px-6 md:px-12 py-5 flex justify-between items-center backdrop-blur-md bg-black/20 border-b border-white/5">
+    <div class="flex items-center gap-3">
+      <span class="w-2.5 h-2.5 rounded-full animate-pulse" style="background: var(--accent)"></span>
+      <span class="font-display font-extrabold tracking-tight text-lg" id="brand-logo">
+        EKAN<span class="text-rose-500" style="color: var(--accent)">$</span>H.LP
+      </span>
+      <span class="hidden md:inline-block text-[11px] text-zinc-500 pl-3 border-l border-zinc-800">
+        11:20 PM IN SONIPAT // IST
+      </span>
+    </div>
+
+    <!-- Era / Artist Vibe Switcher -->
+    <div class="flex items-center gap-2 text-xs">
+      <span class="hidden lg:inline text-zinc-500 mr-2">ERA SHIFT:</span>
+      <button onclick="setEra('tbsm')" class="px-3 py-1.5 rounded-full glass-card hover:text-white text-zinc-300">⚔️ TBSM</button>
+      <button onclick="setEra('psycho')" class="px-3 py-1.5 rounded-full glass-card hover:text-white text-zinc-300">💜 DON</button>
+      <button onclick="setEra('blonde')" class="px-3 py-1.5 rounded-full glass-card hover:text-white text-zinc-300">🟢 BLONDE</button>
+      <button onclick="setEra('kdot')" class="px-3 py-1.5 rounded-full glass-card hover:text-white text-zinc-300">👑 K.DOT / 6</button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="relative z-10 pt-28 pb-32">
+
+    <!-- 01 // HERO SECTION -->
+    <section class="px-6 md:px-12 min-h-[82vh] flex flex-col justify-center">
+      <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Left Column: Brutalist Kinetic Typography -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card text-[11px] tracking-widest uppercase text-zinc-300">
+            <span style="color: var(--accent)">●</span> TRACK 01 // FULL-STACK, AI AGENTS & CYBERSECURITY
+          </div>
+
+          <h1 class="font-display text-5xl sm:text-7xl xl:text-8xl font-extrabold leading-[0.92] tracking-tighter uppercase">
+            CODE LIKE <span class="font-serif-ed italic font-normal lowercase px-2" style="color: var(--accent)">art,</span><br/>
+            SHIP LIKE A <br/>
+            <span id="hero-script-word" class=" inline-block">MIXTAPE.</span>
+          </h1>
+
+          <!-- Active Hard Bar Sub-Quote -->
+          <div class="glass-card p-5 rounded-xl max-w-xl border-l-4" style="border-left-color: var(--accent)">
+            <p id="active-hero-bar" class="font-serif-ed italic text-2xl md:text-3xl text-zinc-100 leading-snug">
+              "Likha maine khoon se, tu bole mera luck hai."
+            </p>
+            <div class="flex justify-between items-center mt-3 text-[11px] text-zinc-400">
+              <span id="active-hero-credit">KR$NA — FALL OFF // MULTI-SYLLABLE ARCHITECTURE</span>
+              <button onclick="cycleBar()" class="underline hover:text-white" style="color: var(--accent)">[NEXT BAR ↻]</button>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-4 pt-2 text-xs">
+            <a href="#discography" class="px-6 py-3.5 font-display font-bold uppercase tracking-wider text-black bg-white hover:opacity-90 transition">
+              Spin Discography ↓
+            </a>
+            <button onclick="triggerTBSM()" class="px-5 py-3.5 glass-card uppercase tracking-wider text-zinc-300 hover:text-white">
+              Try Typing "TBSM" on Keyboard
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Spinning Vinyl Artifact -->
+        <div class="lg:col-span-5 flex flex-col items-center justify-center relative">
+          <div id="hero-vinyl" class="w-72 h-72 sm:w-96 sm:h-96 rounded-full vinyl-grooves vinyl-spin shadow-2xl border-4 border-zinc-800 flex items-center justify-center relative cursor-pointer group" onclick="cycleBar()">
+            <!-- Specular Vinyl Sheen -->
+            <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none"></div>
+            
+            <!-- Center Record Label -->
+            <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-full flex flex-col items-center justify-center text-center p-4 border-4 border-black shadow-inner transition-colors duration-500" style="background: var(--accent)">
+              <span class="text-[9px] font-bold tracking-widest text-black/80 uppercase">SIDE A // 33 RPM</span>
+              <span class="font-display font-extrabold text-black text-sm sm:text-base leading-tight mt-1">EKANSH SHROTRIYA</span>
+              <span class="text-[9px] text-black/80 mt-1">PROD. BY NST</span>
+              <div class="w-3.5 h-3.5 rounded-full bg-[#070709] mt-2"></div>
+            </div>
+          </div>
+          <span class="text-[11px] text-zinc-500 mt-4 tracking-widest uppercase">
+            [CLICK RECORD TO SCRATCH / SWITCH BARS]
+          </span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= KINETIC BAR MARQUEE DIVIDER ================= -->
+    <div class="my-16 py-4 border-y border-white/10 bg-black/40 -rotate-1">
+      <div class="animate-marquee flex gap-12 items-center text-sm md:text-base font-display uppercase tracking-wider">
+        <span>⚔️ "KHEL KHATAM BETA AB SEEDHE MAUT" — <em class="font-serif-ed text-zinc-400">SEEDHE MAUT</em></span>
+        <span style="color: var(--accent)">✦</span>
+        <span>💲 "STILL HERE, ZERO DAY EXPLOITS IN THE TERMINAL" — <em class="font-serif-ed text-zinc-400">KR$NA ENERGY</em></span>
+        <span style="color: var(--accent)">✦</span>
+        <span>🟢 "EVERY NIGHT PATCHES THE DAY UP" — <em class="font-serif-ed text-zinc-400">FRANK OCEAN (NIGHTS)</em></span>
+        <span style="color: var(--accent)">✦</span>
+        <span>🔥 "KISMAT LIKHI KHUD KE HAATH SE" — <em class="font-serif-ed text-zinc-400">PANTHER</em></span>
+        <span style="color: var(--accent)">✦</span>
+        <span>👑 "EVERYTHING I'M NOT MADE ME EVERYTHING I AM" — <em class="font-serif-ed text-zinc-400">KENDRICK / YE</em></span>
+        <span style="color: var(--accent)">✦</span>
+        <!-- Duplicate for seamless loop -->
+        <span>⚔️ "KHEL KHATAM BETA AB SEEDHE MAUT" — <em class="font-serif-ed text-zinc-400">SEEDHE MAUT</em></span>
+        <span style="color: var(--accent)">✦</span>
+        <span>💲 "STILL HERE, ZERO DAY EXPLOITS IN THE TERMINAL" — <em class="font-serif-ed text-zinc-400">KR$NA ENERGY</em></span>
+      </div>
+    </div>
+
+    <!-- ================= 02 // LINER NOTES (GENIUS ANNOTATIONS + RHYME SCHEME) ================= -->
+    <section class="px-6 md:px-12 py-16 max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
+        <div>
+          <span class="text-xs uppercase tracking-widest" style="color: var(--accent)">02 // THE LINER NOTES</span>
+          <h2 class="font-display text-4xl md:text-6xl font-extrabold uppercase tracking-tight mt-1">
+            GENIUS ANNOTATIONS <span class="font-serif-ed italic font-normal lowercase text-zinc-400">&amp; bars</span>
+          </h2>
+        </div>
+
+        <!-- Interactive Mode Toggles -->
+        <div class="flex flex-wrap gap-3 text-xs">
+          <button onclick="toggleRhymeMode()" id="rhyme-btn" class="px-4 py-2 rounded-lg glass-card text-zinc-300 hover:text-white">
+            🎨 [RHYME SCHEME MODE: OFF]
+          </button>
+          <button onclick="toggleDevanagari()" id="script-btn" class="px-4 py-2 rounded-lg glass-card text-zinc-300 hover:text-white">
+            अ [SCRIPT: HINGLISH]
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Left: Bio Paragraph with Interactive Genius Highlights -->
+        <div id="bio-container" class="lg:col-span-7 glass-card p-8 md:p-10 rounded-2xl text-lg md:text-xl leading-relaxed space-y-6 text-zinc-300">
+          <p>
+            From Rajasthan roots to <span class="rhyme-a">late-night</span> studio builds in Sonipat. I architect 
+            <span class="genius-bar" onmouseenter="showAnnotation('krsna')">relentless full-stack systems &amp; AI agents while the city sleeps</span>.
+          </p>
+
+          <p>
+            Whether it's hunting <span class="rhyme-b">zero-day</span> flaws in Kali Linux or binding <span class="rhyme-c">Rust</span> to macOS overlays, the mindset stays 
+            <span class="genius-bar" onmouseenter="showAnnotation('panther')">unapologetic, ground-up, and self-made</span>.
+          </p>
+
+          <p>
+            No bloated <span class="rhyme-c">trust</span>, just clean <span class="rhyme-b">payloads</span> at <span class="rhyme-a">midnight</span>—because when the deployment drops, 
+            <span class="genius-bar" onmouseenter="showAnnotation('sm')">the execution speaks louder than the hype</span>.
+          </p>
+
+          <div class="pt-4 border-t border-white/10 flex justify-between items-center text-xs text-zinc-500">
+            <span>HOVER HIGHLIGHTED LYRICS TO INSPECT LORE →</span>
+            <span>VERIFIED BY EKAN$H</span>
+          </div>
+        </div>
+
+        <!-- Right: Live Genius Annotation Inspector Card -->
+        <div class="lg:col-span-5 glass-card p-8 rounded-2xl border-t-4 relative" style="border-top-color: var(--accent)">
+          <div class="flex justify-between items-center text-xs text-zinc-400 mb-4">
+            <span class="px-2.5 py-1 rounded bg-white/10 text-white font-bold">GENIUS // VERIFIED BAR</span>
+            <span id="annot-timestamp">[01:44 // TRACK LORE]</span>
+          </div>
+
+          <blockquote id="annot-quote" class="font-serif-ed italic text-3xl text-white mb-3">
+            "Shuru se hi alag, main bheed ka hissa nahi."
+          </blockquote>
+          <p id="annot-artist" class="text-xs font-bold uppercase tracking-widest mb-6" style="color: var(--accent)">
+            — KR$NA (STILL HERE)
+          </p>
+
+          <div class="p-4 rounded-xl bg-black/50 border border-white/5 text-sm text-zinc-300 leading-relaxed" id="annot-meaning">
+            <strong>Engineering Translation:</strong> Instead of building generic CRUD clones, Ekansh focuses on low-level MCP gateways, local voice AI assistants, and offensive security labs.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 03 // CRATE DIGGING DISCOGRAPHY (PROJECTS) ================= -->
+    <section id="discography" class="px-6 md:px-12 py-16 max-w-7xl mx-auto">
+      <div class="flex justify-between items-end mb-12">
+        <div>
+          <span class="text-xs uppercase tracking-widest" style="color: var(--accent)">03 // SELECTED DISCOGRAPHY</span>
+          <h2 class="font-display text-4xl md:text-6xl font-extrabold uppercase tracking-tight mt-1">
+            CRATE DIGGING <span class="font-serif-ed italic font-normal lowercase text-zinc-400">(hover sleeves)</span>
+          </h2>
+        </div>
+        <span class="hidden md:inline text-xs text-zinc-500">4 LP RELEASES // MASTERED 2026</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+
+        <!-- Project 1: JARVIS -->
+        <div class="glass-card p-6 rounded-2xl sleeve-wrap group relative overflow-hidden">
+          <div class="flex items-center gap-6">
+            <!-- Album Cover + Sliding Vinyl -->
+            <div class="relative w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0">
+              <div class="vinyl-disc absolute inset-2 rounded-full vinyl-grooves border border-zinc-700 flex items-center justify-center z-0">
+                <div class="w-12 h-12 rounded-full bg-rose-600 flex items-center justify-center text-[8px] font-bold text-black">LP 01</div>
+              </div>
+              <div class="relative z-10 w-full h-full rounded-xl bg-gradient-to-br from-rose-950 via-zinc-900 to-black border border-white/15 p-4 flex flex-col justify-between shadow-2xl">
+                <span class="text-[10px] tracking-widest text-rose-400 font-bold">SIDE A // AI AGENT</span>
+                <div>
+                  <h3 class="font-display font-extrabold text-2xl leading-none">JARVIS</h3>
+                  <p class="text-[10px] text-zinc-400 mt-1">MCP + FASTER-WHISPER</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Liner Credits -->
+            <div class="space-y-3 z-20">
+              <div class="text-[11px] text-zinc-400">PROD. OCT 2026 // MACOS NATIVE</div>
+              <h4 class="font-display text-xl font-bold">Voice-Controlled Local AI</h4>
+              <p class="text-xs text-zinc-400 leading-relaxed">
+                Local voice assistant powered by faster-whisper, Kokoro TTS, SpaCy &amp; MCP Antigravity tool execution.
+              </p>
+              <p class="font-serif-ed italic text-base text-zinc-200 pt-1">
+                "Talk to the machine like it's late night in the booth."
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 2: MOCHI -->
+        <div class="glass-card p-6 rounded-2xl sleeve-wrap group relative overflow-hidden">
+          <div class="flex items-center gap-6">
+            <div class="relative w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0">
+              <div class="vinyl-disc absolute inset-2 rounded-full vinyl-grooves border border-zinc-700 flex items-center justify-center z-0">
+                <div class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-[8px] font-bold text-black">LP 02</div>
+              </div>
+              <div class="relative z-10 w-full h-full rounded-xl bg-gradient-to-br from-purple-950 via-zinc-900 to-black border border-white/15 p-4 flex flex-col justify-between shadow-2xl">
+                <span class="text-[10px] tracking-widest text-purple-400 font-bold">SIDE B // RUST TAURI</span>
+                <div>
+                  <h3 class="font-display font-extrabold text-2xl leading-none">MOCHI</h3>
+                  <p class="text-[10px] text-zinc-400 mt-1">32x32 PIXEL OVERLAY</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3 z-20">
+              <div class="text-[11px] text-zinc-400">PROD. OCT 2026 // RUST + TAURI</div>
+              <h4 class="font-display text-xl font-bold">Desktop Virtual Companion</h4>
+              <p class="text-xs text-zinc-400 leading-relaxed">
+                Full-screen transparent macOS overlay window with custom 32x32 sprite animations &amp; low-level Rust bindings.
+              </p>
+              <p class="font-serif-ed italic text-base text-zinc-200 pt-1">
+                "Psycho chrome energy on a transparent canvas."
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 3: BOOMERANG -->
+        <div class="glass-card p-6 rounded-2xl sleeve-wrap group relative overflow-hidden">
+          <div class="flex items-center gap-6">
+            <div class="relative w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0">
+              <div class="vinyl-disc absolute inset-2 rounded-full vinyl-grooves border border-zinc-700 flex items-center justify-center z-0">
+                <div class="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] font-bold text-black">LP 03</div>
+              </div>
+              <div class="relative z-10 w-full h-full rounded-xl bg-gradient-to-br from-emerald-950 via-zinc-900 to-black border border-white/15 p-4 flex flex-col justify-between shadow-2xl">
+                <span class="text-[10px] tracking-widest text-emerald-400 font-bold">SIDE C // FINTECH AI</span>
+                <div>
+                  <h3 class="font-display font-extrabold text-2xl leading-none">BOOMERANG</h3>
+                  <p class="text-[10px] text-zinc-400 mt-1">FRAUD RING DETECTION</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3 z-20">
+              <div class="text-[11px] text-zinc-400">PROD. SEP 2026 // REACT + PYTHON</div>
+              <h4 class="font-display text-xl font-bold">Return Abuse Intelligence</h4>
+              <p class="text-xs text-zinc-400 leading-relaxed">
+                AI-powered fraud ring and return abuse analytics engine engineered for Razorpay transaction flows.
+              </p>
+              <p class="font-serif-ed italic text-base text-zinc-200 pt-1">
+                "Every transaction leaves a fingerprint in the dark."
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 4: ONSAFE -->
+        <div class="glass-card p-6 rounded-2xl sleeve-wrap group relative overflow-hidden">
+          <div class="flex items-center gap-6">
+            <div class="relative w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0">
+              <div class="vinyl-disc absolute inset-2 rounded-full vinyl-grooves border border-zinc-700 flex items-center justify-center z-0">
+                <div class="w-12 h-12 rounded-full bg-amber-400 flex items-center justify-center text-[8px] font-bold text-black">LP 04</div>
+              </div>
+              <div class="relative z-10 w-full h-full rounded-xl bg-gradient-to-br from-amber-950 via-zinc-900 to-black border border-white/15 p-4 flex flex-col justify-between shadow-2xl">
+                <span class="text-[10px] tracking-widest text-amber-400 font-bold">SIDE D // SECOPS</span>
+                <div>
+                  <h3 class="font-display font-extrabold text-2xl leading-none">ONSAFE</h3>
+                  <p class="text-[10px] text-zinc-400 mt-1">VULN SCANNER ENGINE</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3 z-20">
+              <div class="text-[11px] text-zinc-400">PROD. MAY 2026 // CYBERSECURITY</div>
+              <h4 class="font-display text-xl font-bold">Web Vulnerability Platform</h4>
+              <p class="text-xs text-zinc-400 leading-relaxed">
+                Automated security scanning and vulnerability posture dashboard built for rapid recon.
+              </p>
+              <p class="font-serif-ed italic text-base text-zinc-200 pt-1">
+                "Khel khatam, beta ab seedhe maut."
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= FLOATING BOTTOM MINI-PLAYER & COMMAND BAR ================= -->
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-2xl glass-card rounded-full px-5 py-3 flex items-center justify-between shadow-2xl">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full vinyl-grooves vinyl-spin border border-white/20 flex items-center justify-center">
+        <div class="w-2.5 h-2.5 rounded-full" style="background: var(--accent)"></div>
+      </div>
+      <div class="text-xs">
+        <div id="now-playing-title" class="font-bold text-white">SEEDHE MAUT — RED (INSTRUMENTAL LOOP)</div>
+        <div id="now-playing-sub" class="text-[10px] text-zinc-400">ERA: TBSM // DUAL CURSOR ACTIVE ON KEYCODE</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button onclick="cycleBar()" class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-[11px] text-white transition">
+        NEXT BAR ⏭
+      </button>
+      <span class="hidden sm:inline-block text-[10px] text-zinc-500 px-2">TYPE "TBSM"</span>
+    </div>
+  </div>
+
+  <!-- ================= INTERACTIVE SCRIPTS ================= -->
+  <script>
+    // 1. Preloader BPM Counter
+    let bpm = 0;
+    const bpmEl = document.getElementById('bpm-counter');
+    const dropBtn = document.getElementById('drop-needle-btn');
+    const preloaderQuotes = [
+      { q: '"Kalam jale, dard dukhe, marham bane..."', a: '— SEEDHE MAUT // NAYAAB' },
+      { q: '"Likha maine khoon se, tu bole mera luck hai."', a: '— KR$NA // FALL OFF' },
+      { q: '"Every night patches the day up..."', a: '— FRANK OCEAN // NIGHTS' }
+    ];
+
+    const interval = setInterval(() => {
+      bpm += 4;
+      if (bpm === 40) {
+        document.getElementById('preloader-quote').innerText = preloaderQuotes[1].q;
+        document.getElementById('preloader-artist').innerText = preloaderQuotes[1].a;
+      }
+      if (bpm === 80) {
+        document.getElementById('preloader-quote').innerText = preloaderQuotes[2].q;
+        document.getElementById('preloader-artist').innerText = preloaderQuotes[2].a;
+      }
+      if (bpm >= 100) {
+        bpm = 100;
+        clearInterval(interval);
+        dropBtn.classList.remove('hidden');
+      }
+      bpmEl.innerText = bpm < 10 ? `0${bpm}` : bpm;
+    }, 45);
+
+    function enterStudio() {
+      document.getElementById('preloader').style.transform = 'translateY(-100%)';
+    }
+
+    // 2. Custom Cursor + TBSM Dual Cursor Trail
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    const ghost = document.getElementById('cursor-ghost');
+
+    window.addEventListener('mousemove', (e) => {
+      dot.style.left = `${e.clientX}px`;
+      dot.style.top = `${e.clientY}px`;
+      
+      setTimeout(() => {
+        ring.style.left = `${e.clientX}px`;
+        ring.style.top = `${e.clientY}px`;
+      }, 40);
+
+      setTimeout(() => {
+        ghost.style.left = `${e.clientX + 18}px`;
+        ghost.style.top = `${e.clientY + 18}px`;
+      }, 110);
+    });
+
+    // 3. Era / Artist Theme Switcher
+    const eras = {
+      tbsm: {
+        accent: '#E11D48',
+        glow: 'rgba(225, 29, 72, 0.38)',
+        track: 'SEEDHE MAUT — NAYAAB / RED',
+        sub: 'ERA: TBSM // ENCORE & CALM DUAL ENERGY',
+        bar: '"Kalam jale, dard dukhe, marham bane..."',
+        credit: 'SEEDHE MAUT — NAYAAB // RAW DHH CRAFTSMANSHIP'
+      },
+      psycho: {
+        accent: '#A855F7',
+        glow: 'rgba(168, 85, 247, 0.38)',
+        track: 'DON TOLIVER — HARDSTONE PSYCHO',
+        sub: 'ERA: PSYCHO // CHROME & ULTRAVIOLET SHADER',
+        bar: '"I\'m in the coupe with the stars in the roof, tearing it up."',
+        credit: 'DON TOLIVER — TORE UP // HIGH-OCTANE SYNTHESIS'
+      },
+      blonde: {
+        accent: '#22C55E',
+        glow: 'rgba(34, 197, 94, 0.35)',
+        track: 'FRANK OCEAN — NIGHTS (BEAT SWITCH)',
+        sub: 'ERA: BLONDE // 50% SCROLL NOCTURNAL SHIFT',
+        bar: '"Every night fucks every day up... Every day patches the night up."',
+        credit: 'FRANK OCEAN — NIGHTS // DUALITY OF DAY & TERMINAL'
+      },
+      kdot: {
+        accent: '#EAB308',
+        glow: 'rgba(234, 179, 8, 0.32)',
+        track: 'KENDRICK LAMAR & DRAKE — POETIC TIMESTAMP',
+        sub: 'ERA: PULITZER / 5 AM IN SONIPAT',
+        bar: '"Everything I\'m not made me everything I am."',
+        credit: 'KENDRICK / WEST — EDITORIAL MONOCHROME & GOLD'
+      }
+    };
+
+    function setEra(key) {
+      const e = eras[key];
+      document.documentElement.style.setProperty('--accent', e.accent);
+      document.documentElement.style.setProperty('--accent-glow', e.glow);
+      document.getElementById('now-playing-title').innerText = e.track;
+      document.getElementById('now-playing-sub').innerText = e.sub;
+      document.getElementById('active-hero-bar').innerText = e.bar;
+      document.getElementById('active-hero-credit').innerText = e.credit;
+    }
+
+    // 4. Hard Bar Vault Cycler
+    const barsVault = [
+      { bar: '"Likha maine khoon se, tu bole mera luck hai."', credit: 'KR$NA — FALL OFF // RELENTLESS CONSISTENCY' },
+      { bar: '"Khel khatam, beta ab seedhe maut."', credit: 'SEEDHE MAUT — NAMASTUTE // ZERO COMPROMISE' },
+      { bar: '"Jahaan se hum aate, humne kismat likhi khud ke haath se."', credit: 'PANTHER — GALAT KARAM // GROUND-UP HUSTLE' },
+      { bar: '"Every night patches the day up."', credit: 'FRANK OCEAN — NIGHTS // LATE NIGHT COMMITS' },
+      { bar: '"Sit down. Be humble. Let the architecture speak."', credit: 'KENDRICK LAMAR — HUMBLE. // CLEAN SYSTEMS' }
+    ];
+    let barIdx = 0;
+
+    function cycleBar() {
+      barIdx = (barIdx + 1) % barsVault.length;
+      document.getElementById('active-hero-bar').innerText = barsVault[barIdx].bar;
+      document.getElementById('active-hero-credit').innerText = barsVault[barIdx].credit;
+    }
+
+    // 5. Genius Annotations Data
+    const annotations = {
+      krsna: {
+        quote: '"Shuru se hi alag, main bheed ka hissa nahi."',
+        artist: '— KR$NA (STILL HERE)',
+        time: '[01:44 // MULTI-SYLLABLE GRIND]',
+        meaning: 'Engineering Translation: While others build basic templates, Ekansh engineers custom AI gateways, voice-driven local agents (Jarvis), and offensive security labs.'
+      },
+      panther: {
+        quote: '"Humne kismat likhi khud ke haath se."',
+        artist: '— PANTHER (UP / RAW HUSTLE)',
+        time: '[02:18 // ROOTS & GRIT]',
+        meaning: 'Engineering Translation: Grounded in Rajasthan & Sonipat, shipping open-source code, winning hackathons, and mastering systems from first principles.'
+      },
+      sm: {
+        quote: '"Kalam jale, dard dukhe, marham bane..."',
+        artist: '— SEEDHE MAUT (NAYAAB)',
+        time: '[03:05 // TBSM4L EXECUTION]',
+        meaning: 'Engineering Translation: Code isn\'t just syntax—it\'s craft. Blending low-level Rust performance (Mochi) with high-art glassmorphic UI.'
+      }
+    };
+
+    function showAnnotation(key) {
+      const a = annotations[key];
+      document.getElementById('annot-quote').innerText = a.quote;
+      document.getElementById('annot-artist').innerText = a.artist;
+      document.getElementById('annot-timestamp').innerText = a.time;
+      document.getElementById('annot-meaning').innerText = a.meaning;
+    }
+
+    // 6. Rhyme Scheme & Devanagari Script Toggles
+    let rhymeOn = false;
+    function toggleRhymeMode() {
+      rhymeOn = !rhymeOn;
+      const bio = document.getElementById('bio-container');
+      const btn = document.getElementById('rhyme-btn');
+      bio.classList.toggle('rhyme-active', rhymeOn);
+      btn.innerText = rhymeOn ? '🎨 [RHYME SCHEME MODE: ON]' : '🎨 [RHYME SCHEME MODE: OFF]';
+    }
+
+    let devanagariOn = false;
+    function toggleDevanagari() {
+      devanagariOn = !devanagariOn;
+      const word = document.getElementById('hero-script-word');
+      const btn = document.getElementById('script-btn');
+      if (devanagariOn) {
+        word.innerText = 'सीधे मौत // कला.';
+        word.classList.add('font-devanagari');
+        btn.innerText = 'अ [SCRIPT: DEVANAGARI]';
+      } else {
+        word.innerText = 'MIXTAPE.';
+        word.classList.remove('font-devanagari');
+        btn.innerText = 'अ [SCRIPT: HINGLISH]';
+      }
+    }
+
+    // 7. Secret "TBSM" Keyboard Easter Egg + KR$NA DevTools Easter Egg
+    let keyBuffer = '';
+    window.addEventListener('keydown', (e) => {
+      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-4);
+      if (keyBuffer === 'tbsm') {
+        triggerTBSM();
+      }
+    });
+
+    function triggerTBSM() {
+      setEra('tbsm');
+      ghost.style.opacity = '1'; // Activate dual cursor (Encore & Calm)
+      document.body.style.boxShadow = 'inset 0 0 120px rgba(225, 29, 72, 0.6)';
+      setTimeout(() => {
+        document.body.style.boxShadow = 'none';
+      }, 900);
+    }
+
+    console.log("%c EKAN$H // STILL HERE ", "background: #E11D48; color: #fff; font-size: 16px; font-weight: bold; padding: 6px 12px;");
+    console.log("Looking under the hood? 'Likha maine khoon se, tu bole mera luck hai.' — KR$NA");
+  </script>
+</body>
+</html>

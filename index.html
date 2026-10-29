@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EKAN$H // AUDIO-REACTIVE LIQUID VINYL DEMO V2</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --accent: #E11D48;
+      --accent-glow: rgba(225, 29, 72, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background-color: #050507;
+      color: #F5F5F0;
+      font-family: 'JetBrains Mono', monospace;
+      overflow-x: hidden;
+    }
+
+    .font-display { font-family: 'Syne', sans-serif; }
+    .font-serif-ed { font-family: 'Instrument Serif', serif; }
+
+    /* WebGL Liquid Canvas */
+    #liquid-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Film Grain Overlay */
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* Frosted Acrylic Glass */
+    .glass {
+      background: rgba(12, 12, 16, 0.62);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
+    }
+    .glass:hover {
+      border-color: var(--accent);
+      box-shadow: 0 12px 45px -10px var(--accent-glow);
+    }
+
+    /* 3D Vinyl Record */
+    .vinyl-grooves {
+      background: repeating-radial-gradient(
+        #0b0b0e 0px,
+        #0b0b0e 2px,
+        #1c1c24 3px,
+        #09090b 4px
+      );
+    }
+    @keyframes spinRecord {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .vinyl-spinning {
+      animation: spinRecord 6s linear infinite;
+    }
+    .vinyl-paused {
+      animation-play-state: paused;
+    }
+
+    /* Crate Digging Sleeve Hover */
+    .sleeve-card:hover .sleeve-vinyl {
+      transform: translateX(46%) rotate(160deg);
+    }
+    .sleeve-vinyl {
+      transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Collision-Dodging Floating Player */
+    #dodge-player {
+      position: fixed;
+      top: 50%;
+      z-index: 60;
+      width: 280px;
+      transition: left 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.3s ease;
+    }
+    /* Position States */
+    .player-right {
+      left: calc(100vw - 304px);
+      transform: translateY(-50%);
+    }
+    .player-left {
+      left: 24px;
+      transform: translateY(-50%);
+    }
+    @media (max-width: 768px) {
+      .player-right, .player-left {
+        left: 50% !important;
+        top: auto !important;
+        bottom: 16px !important;
+        transform: translateX(-50%) !important;
+        width: 92vw !important;
+      }
+    }
+
+    /* Bass Thump Typography Glitch */
+    .thump-scale {
+      transition: transform 0.08s ease-out, text-shadow 0.08s ease-out;
+    }
+
+    /* Genius Highlight */
+    .genius-link {
+      border-bottom: 2px solid var(--accent);
+      background: linear-gradient(90deg, transparent, var(--accent-glow));
+      padding: 0 5px;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .genius-link:hover {
+      background: var(--accent);
+      color: #050507;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. REAL-TIME WEBGL LIQUID SHADER CANVAS -->
+  <canvas id="liquid-canvas"></canvas>
+  <div class="noise-overlay"></div>
+
+  <!-- 2. COLLISION-DODGING FLOATING PLAYER (MOVES LEFT <-> RIGHT AS YOU SCROLL) -->
+  <aside id="dodge-player" class="player-right glass rounded-2xl p-4 shadow-2xl">
+    <div class="flex items-center justify-between text-[10px] tracking-widest text-zinc-400 mb-3">
+      <span class="flex items-center gap-1.5">
+        <span id="live-dot" class="w-2 h-2 rounded-full bg-zinc-500"></span>
+        <span id="player-side-indicator">DOCK: RIGHT</span>
+      </span>
+      <span class="uppercase px-1.5 py-0.5 rounded bg-white/10 text-white" id="bpm-tag">140 BPM</span>
+    </div>
+
+    <!-- Track Meta -->
+    <div class="flex items-center gap-3 mb-3">
+      <div id="mini-vinyl" class="w-11 h-11 rounded-full vinyl-grooves vinyl-spinning vinyl-paused flex items-center justify-center border border-white/20 flex-shrink-0">
+        <div id="mini-label" class="w-4 h-4 rounded-full" style="background: var(--accent)"></div>
+      </div>
+      <div class="overflow-hidden">
+        <div id="track-title" class="text-xs font-bold text-white truncate">NAYAAB // KHATTA FLOW</div>
+        <div id="track-artist" class="text-[11px] text-zinc-400 truncate">SEEDHE MAUT FT. KR$NA</div>
+      </div>
+    </div>
+
+    <!-- Live Frequency Visualizer Bars -->
+    <div class="h-8 flex items-end gap-1 mb-3 px-1 bg-black/40 rounded-lg p-1.5 border border-white/5" id="eq-bars">
+      <div class="eq-bar flex-1 bg-white/70 h-2 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-3 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-2 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-4 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-2 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-3 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-2 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-5 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-2 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-3 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-2 rounded-sm transition-all duration-75"></div>
+      <div class="eq-bar flex-1 bg-white/70 h-4 rounded-sm transition-all duration-75"></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="grid grid-cols-3 gap-1.5 text-[11px]">
+      <button onclick="prevTrack()" class="py-2 rounded-lg bg-white/5 hover:bg-white/15 text-zinc-300">⏮ PREV</button>
+      <button onclick="toggleAudio()" id="play-btn" class="py-2 rounded-lg font-bold text-black transition" style="background: var(--accent)">
+        ▶ PLAY
+      </button>
+      <button onclick="nextTrack()" class="py-2 rounded-lg bg-white/5 hover:bg-white/15 text-zinc-300">NEXT ⏭</button>
+    </div>
+
+    <div class="mt-2.5 pt-2 border-t border-white/10 text-[10px] text-zinc-400 flex justify-between">
+      <span>AUTO-DODGE SCROLL:</span>
+      <span class="text-white font-bold">ACTIVE ⚡</span>
+    </div>
+  </aside>
+
+  <!-- 3. TOP NAVIGATION -->
+  <header class="fixed top-0 w-full z-40 px-6 md:px-12 py-5 flex justify-between items-center backdrop-blur-md bg-black/25 border-b border-white/10">
+    <div class="flex items-center gap-3">
+      <span class="font-display font-extrabold text-lg tracking-tight">
+        EKAN<span style="color: var(--accent)">$</span>H.LP
+      </span>
+      <span class="hidden sm:inline text-[11px] text-zinc-400 pl-3 border-l border-white/15">
+        SONIPAT // AI &amp; FULL-STACK ARCHITECT
+      </span>
+    </div>
+
+    <div class="flex items-center gap-2 text-xs">
+      <button onclick="shuffleHardBar()" class="px-3.5 py-1.5 rounded-full glass text-zinc-200 hover:text-white">
+        🎲 DROP RANDOM BAR
+      </button>
+    </div>
+  </header>
+
+  <!-- 4. MAIN SCROLLABLE TRACKLIST (WITH COLLISION ZONES) -->
+  <main class="relative z-10 pt-24 pb-32 space-y-36">
+
+    <!-- ================= SECTION 01: HERO (TEXT LEFT -> PLAYER DOCKS RIGHT) ================= -->
+    <section data-player-side="right" class="min-h-[88vh] px-6 md:px-16 flex items-center">
+      <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        
+        <!-- Left Content -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-[11px] tracking-widest uppercase">
+            <span style="color: var(--accent)">●</span> AUDIO-REACTIVE LIQUID SHADER + 3D VINYL
+          </div>
+
+          <h1 id="hero-title" class="thump-scale font-display text-5xl sm:text-7xl font-extrabold leading-[0.92] tracking-tighter uppercase">
+            BUILT ON <span class="font-serif-ed italic font-normal lowercase" style="color: var(--accent)">808s</span><br/>
+            &amp; CLEAN CODE.
+          </h1>
+
+          <!-- Dynamic Bar Vault Card -->
+          <div class="glass p-6 rounded-2xl max-w-xl border-l-4" style="border-left-color: var(--accent)">
+            <div class="flex justify-between items-center text-[10px] tracking-widest text-zinc-400 mb-2">
+              <span id="bar-tag">DYNAMIC BAR VAULT // ACTIVE TRACK</span>
+              <button onclick="shuffleHardBar()" class="underline hover:text-white" style="color: var(--accent)">[SHUFFLE BAR ↻]</button>
+            </div>
+            <p id="dynamic-bar-text" class="font-serif-ed italic text-2xl sm:text-3xl text-white leading-snug">
+              "Kalam jale, dard dukhe, marham bane, aise hi nahi bante hum Nayaab."
+            </p>
+            <p id="dynamic-bar-meta" class="text-xs font-bold uppercase tracking-widest mt-3" style="color: var(--accent)">
+              — SEEDHE MAUT // NAYAAB
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-3 pt-1 text-xs">
+            <button onclick="toggleAudio()" id="hero-play-cta" class="px-6 py-3.5 font-display font-bold uppercase tracking-wider bg-white text-black hover:opacity-90 transition shadow-xl">
+              ▶ Start 808 Beat &amp; Liquid Reactive Mode
+            </button>
+            <button onclick="nextTrack()" class="px-5 py-3.5 glass uppercase tracking-wider text-zinc-200">
+              Switch Artist Era ⏭
+            </button>
+          </div>
+        </div>
+
+        <!-- Center/Right Interactive 3D Vinyl Record -->
+        <div class="lg:col-span-5 flex flex-col items-center justify-center">
+          <div id="vinyl-wrapper" class="relative w-72 h-72 sm:w-88 sm:h-88 flex items-center justify-center transition-transform duration-100 ease-out cursor-grab active:cursor-grabbing" onclick="nextTrack()">
+            <!-- Reactive Outer Halo -->
+            <div id="vinyl-halo" class="absolute inset-[-15px] rounded-full blur-2xl opacity-50 transition-all duration-75" style="background: var(--accent)"></div>
+            
+            <!-- Vinyl Disc -->
+            <div id="main-vinyl" class="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full vinyl-grooves vinyl-spinning vinyl-paused border-4 border-white/15 shadow-2xl flex items-center justify-center">
+              <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none"></div>
+              
+              <!-- Center Album Label -->
+              <div id="vinyl-center-label" class="w-28 h-28 rounded-full border-4 border-black flex flex-col items-center justify-center text-center p-3 transition-colors duration-500" style="background: var(--accent)">
+                <span id="label-era" class="text-[8px] font-bold tracking-widest text-black/80 uppercase">TBSM4L</span>
+                <span class="font-display font-extrabold text-black text-xs leading-tight mt-0.5">EKAN$H LP</span>
+                <div class="w-3 h-3 rounded-full bg-[#050507] mt-1.5"></div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-zinc-400 mt-4 tracking-widest uppercase text-center">
+            [MOVE MOUSE TO TILT 3D VINYL • CLICK DISC TO SWITCH ARTIST COLOR]
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 02: BIO / LINER NOTES (CONTENT ON RIGHT -> PLAYER DODGES LEFT!) ================= -->
+    <section data-player-side="left" class="px-6 md:px-16 py-12">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Empty Left Column so the Dodging Player sits here cleanly! -->
+        <div class="hidden lg:flex lg:col-span-4 flex-col justify-center text-xs text-zinc-500 border-l border-white/10 pl-6">
+          <span class="uppercase tracking-widest text-zinc-400 mb-2">← PLAYER DOCK ZONE</span>
+          <p>Notice how the floating player automatically glided to the left side because this paragraph lives on the right.</p>
+        </div>
+
+        <!-- Right-Aligned Liner Notes Paragraph -->
+        <div class="lg:col-span-8 glass p-8 md:p-12 rounded-3xl space-y-6">
+          <div class="flex justify-between items-center text-xs text-zinc-400">
+            <span style="color: var(--accent)">02 // THE LINER NOTES (RIGHT-ALIGNED ROUTE)</span>
+            <span>RAJASTHAN ROOTS → SONIPAT STUDIO</span>
+          </div>
+
+          <h2 class="font-display text-3xl sm:text-5xl font-extrabold uppercase tracking-tight">
+            CRAFTING PRODUCTS LIKE <span class="font-serif-ed italic font-normal lowercase" style="color: var(--accent)">executive produced</span> ALBUMS.
+          </h2>
+
+          <p class="text-base sm:text-lg text-zinc-300 leading-relaxed">
+            I engineer full-stack web applications, native desktop companions, and autonomous AI agent architectures. Just like 
+            <span class="genius-link" onmouseenter="previewGenius('sm')">Seedhe Maut switching flows mid-verse</span>, I move between low-level Rust/Tauri bindings and glassmorphic Next.js interfaces without dropping a frame.
+          </p>
+
+          <p class="text-base sm:text-lg text-zinc-300 leading-relaxed">
+            Every system is built with 
+            <span class="genius-link" onmouseenter="previewGenius('krsna')">relentless multi-syllable precision</span> and 
+            <span class="genius-link" onmouseenter="previewGenius('frank')">late-night nocturnal obsession</span>—turning raw ideas into interactive software that feels alive.
+          </p>
+
+          <!-- Live Genius Mini Bar Box -->
+          <div id="genius-box" class="p-5 rounded-2xl bg-black/60 border border-white/10">
+            <div class="text-[10px] uppercase tracking-widest text-zinc-400 mb-1">GENIUS // HOVER HIGHLIGHTED PHRASES ABOVE</div>
+            <p id="genius-quote" class="font-serif-ed italic text-2xl text-white">"Shuru se hi alag, main bheed ka hissa nahi."</p>
+            <p id="genius-sub" class="text-xs mt-1" style="color: var(--accent)">— KR$NA (STILL HERE) // ZERO BOILERPLATE ENGINEERING</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 03: DISCOGRAPHY PART A (CONTENT ON LEFT -> PLAYER DODGES RIGHT!) ================= -->
+    <section data-player-side="right" class="px-6 md:px-16 py-12">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        
+        <!-- Left-Aligned Project Sleeves -->
+        <div class="lg:col-span-8 space-y-8">
+          <div>
+            <span class="text-xs uppercase tracking-widest" style="color: var(--accent)">03 // DISCOGRAPHY SIDE A (LEFT ROUTE)</span>
+            <h2 class="font-display text-4xl sm:text-5xl font-extrabold uppercase mt-1">
+              AI AGENTS &amp; NATIVE APPS
+            </h2>
+          </div>
+
+          <!-- Project 1: JARVIS -->
+          <div class="glass p-6 rounded-2xl sleeve-card">
+            <div class="flex flex-col sm:flex-row items-center gap-6">
+              <div class="relative w-36 h-36 flex-shrink-0">
+                <div class="sleeve-vinyl absolute inset-2 rounded-full vinyl-grooves border border-zinc-600 flex items-center justify-center">
+                  <div class="w-10 h-10 rounded-full bg-rose-600 text-[8px] font-bold text-black flex items-center justify-center">LP 01</div>
+                </div>
+                <div class="relative z-10 w-full h-full rounded-xl bg-gradient-to-br from-rose-950 via-zinc-900 to-black border border-white/15 p-4 flex flex-col justify-between">
+                  <span class="text-[9px] text-rose-400 font-bold tracking-widest">TRACK 01 // VOICE AI</span>
+                  <span class="font-display font-extrabold text-xl">JARVIS</span>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="text-[11px] text-zinc-400">FASTER-WHISPER • KOKORO TTS • MCP ANTIGRAVITY</div>
+                <h3 class="font-display text-2xl font-bold">Local Voice-Controlled AI Assistant</h3>
+                <p class="text-xs text-zinc-300 leading-relaxed">
+                  Zero-latency macOS voice assistant executing native Model Context Protocol tools with natural speech synthesis.
+                </p>
+                <p class="font-serif-ed italic text-lg text-zinc-200">"5 AM in the terminal, talking to the machine."</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 2: MOCHI -->
+          <div class="glass p-6 rounded-2xl sleeve-card">
+            <div class="flex flex-col sm:flex-row items-center gap-6">
+              <div class="relative w-36 h-36 flex-shrink-0">
+                <div class="sleeve-vinyl absolute inset-2 rounded-full vinyl-grooves border border-zinc-600 flex items-center justify-center">
+                  <div class="w-10 h-10 rounded-full bg-purple-500 text-[8px] font-bold text-black flex items-center justify-center">LP 02</div>
+                </div>
+                <div class="relative z-10 w-full h-full rounded-xl bg-gradient-to-br from-purple-950 via-zinc-900 to-black border border-white/15 p-4 flex flex-col justify-between">
+                  <span class="text-[9px] text-purple-400 font-bold tracking-widest">TRACK 02 // RUST TAURI</span>
+                  <span class="font-display font-extrabold text-xl">MOCHI</span>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="text-[11px] text-zinc-400">RUST • TAURI • 32x32 PIXEL SPRITE ENGINE</div>
+                <h3 class="font-display text-2xl font-bold">Transparent macOS Desktop Companion</h3>
+                <p class="text-xs text-zinc-300 leading-relaxed">
+                  Interactive virtual pet living over your macOS workspace with native Rust window bindings and custom pixel physics.
+                </p>
+                <p class="font-serif-ed italic text-lg text-zinc-200">"Hardstone psycho chrome on a transparent screen."</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden lg:flex lg:col-span-4 flex-col justify-center text-xs text-zinc-500 border-r border-white/10 pr-6 text-right">
+          <span class="uppercase tracking-widest text-zinc-400 mb-2">PLAYER DOCK ZONE →</span>
+          <p>The content shifted back to the left column, so the player smoothly glided back to the right side.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 04: DISCOGRAPHY PART B (CONTENT ON RIGHT -> PLAYER DODGES LEFT!) ================= -->
+    <section data-player-side="left" class="px-6 md:px-16 py-12">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        
+        <div class="hidden lg:flex lg:col-span-4 flex-col justify-center text-xs text-zinc-500 border-l border-white/10 pl-6">
+          <span class="uppercase tracking-widest text-zinc-400 mb-2">← PLAYER DOCK ZONE</span>
+          <p>Player dodges left again so your Side B projects have 100% breathing room on the right.</p>
+        </div>
+
+        <!-- Right-Aligned Project Sleeves -->
+        <div class="lg:col-span-8 space-y-8">
+          <div>
+            <span class="text-xs uppercase tracking-widest" style="color: var(--accent)">04 // DISCOGRAPHY SIDE B (RIGHT ROUTE)</span>
+            <h2 class="font-display text-4xl sm:text-5xl font-extrabold uppercase mt-1">
+              FULL-STACK &amp; SONIC WEB
+            </h2>
+          </div>
+
+          <!-- Project 3: INDIESTREAM -->
+          <div class="glass p-6 rounded-2xl sleeve-card">
+            <div class="flex flex-col sm:flex-row items-center gap-6">
+              <div class="relative w-36 h-36 flex-shrink-0">
+                <div class="sleeve-vinyl absolute inset-2 rounded-full vinyl-grooves border border-zinc-600 flex items-center justify-center">
+                  <div class="w-10 h-10 rounded-full bg-emerald-400 text-[8px] font-bold text-black flex items-center justify-center">LP 03</div>
+                </div>
+                <div class="relative z-10 w-full h-full rounded-xl bg-gradient-to-br from-emerald-950 via-zinc-900 to-black border border-white/15 p-4 flex flex-col justify-between">
+                  <span class="text-[9px] text-emerald-400 font-bold tracking-widest">TRACK 03 // SONIC UI</span>
+                  <span class="font-display font-extrabold text-xl">INDIESTREAM</span>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="text-[11px] text-zinc-400">GLASSMORPHISM • JAMENDO API • DYNAMIC ARTWORK SHADERS</div>
+                <h3 class="font-display text-2xl font-bold">Adaptive Glassmorphic Music Streaming</h3>
+                <p class="text-xs text-zinc-300 leading-relaxed">
+                  Music discovery experience that extracts real-time color palettes from album art to morph the ambient backdrop.
+                </p>
+                <p class="font-serif-ed italic text-lg text-zinc-200">"Every night patches the day up."</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 4: BOOMERANG -->
+          <div class="glass p-6 rounded-2xl sleeve-card">
+            <div class="flex flex-col sm:flex-row items-center gap-6">
+              <div class="relative w-36 h-36 flex-shrink-0">
+                <div class="sleeve-vinyl absolute inset-2 rounded-full vinyl-grooves border border-zinc-600 flex items-center justify-center">
+                  <div class="w-10 h-10 rounded-full bg-amber-400 text-[8px] font-bold text-black flex items-center justify-center">LP 04</div>
+                </div>
+                <div class="relative z-10 w-full h-full rounded-xl bg-gradient-to-br from-amber-950 via-zinc-900 to-black border border-white/15 p-4 flex flex-col justify-between">
+                  <span class="text-[9px] text-amber-400 font-bold tracking-widest">TRACK 04 // FINTECH AI</span>
+                  <span class="font-display font-extrabold text-xl">BOOMERANG</span>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="text-[11px] text-zinc-400">REACT • PYTHON • GRAPH FRAUD INTELLIGENCE</div>
+                <h3 class="font-display text-2xl font-bold">AI Return Abuse &amp; Fraud Ring Engine</h3>
+                <p class="text-xs text-zinc-300 leading-relaxed">
+                  Real-time anomaly detection dashboard mapping coordinated return fraud rings across e-commerce payment rails.
+                </p>
+                <p class="font-serif-ed italic text-lg text-zinc-200">"Numbers don't lie when the beat drops."</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= SCRIPTS: WEBGL LIQUID SHADER + WEB AUDIO 808 + DODGE ENGINE ================= -->
+  <script>
+    /********************************************************************
+     * 1. ARTIST TRACKS & DYNAMIC BAR VAULT (EVERY BANGER REPRESENTED)
+     ********************************************************************/
+    const playlist = [
+      {
+        title: "NAYAAB // KHATTA FLOW",
+        artist: "SEEDHE MAUT FT. KR$NA",
+        era: "TBSM4L",
+        bpm: 144,
+        rootFreq: 55, // A1 sub bass
+        accent: "#E11D48",
+        glow: "rgba(225, 29, 72, 0.45)",
+        colorA: [0.88, 0.11, 0.28], // Crimson
+        colorB: [0.06, 0.02, 0.05]  // Obsidian Red
+      },
+      {
+        title: "HARDSTONE PSYCHO // TORE UP",
+        artist: "DON TOLIVER",
+        era: "PSYCHO",
+        bpm: 132,
+        rootFreq: 49, // G1 sub bass
+        accent: "#A855F7",
+        glow: "rgba(168, 85, 247, 0.45)",
+        colorA: [0.66, 0.33, 0.97], // Ultraviolet
+        colorB: [0.05, 0.02, 0.12]  // Deep Indigo
+      },
+      {
+        title: "BLONDE // NIGHTS (BEAT SWITCH)",
+        artist: "FRANK OCEAN",
+        era: "BLONDE",
+        bpm: 118,
+        rootFreq: 65.4, // C2 warm bass
+        accent: "#22C55E",
+        glow: "rgba(34, 197, 94, 0.42)",
+        colorA: [0.13, 0.77, 0.37], // Blonde Acid Green
+        colorB: [0.12, 0.06, 0.02]  // Sunset Warmth
+      },
+      {
+        title: "STILL HERE // FALL OFF",
+        artist: "KR$NA",
+        era: "DOLLAR SIGN",
+        bpm: 150,
+        rootFreq: 58.2, // A#1
+        accent: "#38BDF8",
+        glow: "rgba(56, 189, 248, 0.42)",
+        colorA: [0.22, 0.74, 0.97], // Ice Cyan
+        colorB: [0.02, 0.05, 0.10]
+      },
+      {
+        title: "GNX // 5 AM IN TORONTO",
+        artist: "KENDRICK LAMAR & DRAKE",
+        era: "CROWN / 6",
+        bpm: 138,
+        rootFreq: 51.9, // G#1
+        accent: "#F59E0B",
+        glow: "rgba(245, 158, 11, 0.42)",
+        colorA: [0.96, 0.62, 0.04], // Champagne Gold
+        colorB: [0.10, 0.03, 0.02]
+      }
+    ];
+
+    const barVault = [
+      { bar: '"Kalam jale, dard dukhe, marham bane, aise hi nahi bante hum Nayaab."', meta: '— SEEDHE MAUT // NAYAAB' },
+      { bar: '"Khel khatam, beta ab Seedhe Maut."', meta: '— SEEDHE MAUT // NAMASTUTE' },
+      { bar: '"101 pe gaadi, bina brake ke chalein hum."', meta: '— SEEDHE MAUT // 101' },
+      { bar: '"Likha maine khoon se, tu bole mera luck hai."', meta: '— KR$NA // FALL OFF' },
+      { bar: '"Shuru se hi alag, main bheed ka hissa nahi."', meta: '— KR$NA // STILL HERE' },
+      { bar: '"Jahaan se hum aate, humne kismat likhi khud ke haath se."', meta: '— PANTHER // GALAT KARAM' },
+      { bar: '"Bina sifarish ke khada kiya samrajya."', meta: '— PANTHER // UP SE' },
+      { bar: '"Every night fucks every day up... Every day patches the night up."', meta: '— FRANK OCEAN // NIGHTS' },
+      { bar: '"We\'ll never be those kids again."', meta: '— FRANK OCEAN // IVY' },
+      { bar: '"I\'m in the coupe with the stars in the roof, tearing it up."', meta: '— DON TOLIVER // TORE UP' },
+      { bar: '"Sit down. Be humble. Let the work talk."', meta: '— KENDRICK LAMAR // HUMBLE.' },
+      { bar: '"Reincarnated, I was stargazing, life goes on, I need all my babies."', meta: '— KENDRICK LAMAR // GNX' },
+      { bar: '"5 AM in the studio, numbers look like phone numbers."', meta: '— DRAKE // TIMESTAMP SERIES' }
+    ];
+
+    let currentTrackIdx = 0;
+
+    function shuffleHardBar() {
+      const pick = barVault[Math.floor(Math.random() * barVault.length)];
+      document.getElementById('dynamic-bar-text').innerText = pick.bar;
+      document.getElementById('dynamic-bar-meta').innerText = pick.meta;
+    }
+
+    function previewGenius(key) {
+      const map = {
+        sm: { q: '"101 pe gaadi, bina brake ke chalein hum."', s: '— SEEDHE MAUT (101) // HIGH-VELOCITY SHIPPING' },
+        krsna: { q: '"Likha maine khoon se, tu bole mera luck hai."', s: '— KR$NA (FALL OFF) // OBSESSIVE SYSTEM ARCHITECTURE' },
+        frank: { q: '"Every night patches the day up."', s: '— FRANK OCEAN (NIGHTS) // LATE NIGHT COMMITS IN SONIPAT' }
+      };
+      document.getElementById('genius-quote').innerText = map[key].q;
+      document.getElementById('genius-sub').innerText = map[key].s;
+    }
+
+    /********************************************************************
+     * 2. WEBGL GLSL LIQUID SHADER (REACTS TO 808 BASS THUMP + ALBUM COLORS)
+     ********************************************************************/
+    const canvas = document.getElementById('liquid-canvas');
+    const gl = canvas.getContext('webgl');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const vsSource = `
+      attribute vec2 a_position;
+      void main() {
+        gl_Position = vec4(a_position, 0.0, 1.0);
+      }
+    `;
+
+    const fsSource = `
+      precision mediump float;
+      uniform vec2 u_resolution;
+      uniform float u_time;
+      uniform float u_thump;
+      uniform vec3 u_colorA;
+      uniform vec3 u_colorB;
+
+      void main() {
+        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+        vec2 p = uv * 2.0 - 1.0;
+        p.x *= u_resolution.x / u_resolution.y;
+
+        // Distance from center for bass shockwave
+        float dist = length(p);
+        float bassWave = sin(dist * 10.0 - u_time * 4.0) * u_thump * 0.35;
+
+        // Domain warping liquid distortion
+        for(float i = 1.0; i < 4.0; i++) {
+          p.x += (0.35 + u_thump * 0.25) / i * sin(i * 2.8 * p.y + u_time * 0.9 + bassWave);
+          p.y += (0.35 + u_thump * 0.25) / i * cos(i * 2.8 * p.x + u_time * 0.9 - bassWave);
+        }
+
+        float liquid = 0.5 + 0.5 * sin(p.x * 2.2 + p.y * 2.2 + u_time);
+        vec3 col = mix(u_colorB, u_colorA, pow(liquid, 1.6));
+
+        // Add subtle radial specular flash on 808 kick
+        col += u_colorA * (u_thump * 0.45) * exp(-dist * 1.8);
+
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `;
+
+    function compileShader(type, source) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, source);
+      gl.compileShader(s);
+      return s;
+    }
+
+    const prog = gl.createProgram();
+    gl.attachShader(prog, compileShader(gl.VERTEX_SHADER, vsSource));
+    gl.attachShader(prog, compileShader(gl.FRAGMENT_SHADER, fsSource));
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+    const posLoc = gl.getAttribLocation(prog, 'a_position');
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+    const uRes = gl.getUniformLocation(prog, 'u_resolution');
+    const uTime = gl.getUniformLocation(prog, 'u_time');
+    const uThump = gl.getUniformLocation(prog, 'u_thump');
+    const uColA = gl.getUniformLocation(prog, 'u_colorA');
+    const uColB = gl.getUniformLocation(prog, 'u_colorB');
+
+    let currentColA = [...playlist[0].colorA];
+    let targetColA = [...playlist[0].colorA];
+    let currentColB = [...playlist[0].colorB];
+    let targetColB = [...playlist[0].colorB];
+    let smoothThump = 0;
+
+    /********************************************************************
+     * 3. WEB AUDIO API 808 SYNTHESIZER & REAL-TIME ANALYSER
+     ********************************************************************/
+    let audioCtx = null;
+    let analyser = null;
+    let freqData = null;
+    let isPlaying = false;
+    let beatTimer = null;
+    let step = 0;
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      analyser.connect(audioCtx.destination);
+    }
+
+    function trigger808Kick(freq) {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      // 808 pitch envelope drop
+      osc.frequency.setValueAtTime(freq * 2.8, now);
+      osc.frequency.exponentialRampToValueAtTime(freq, now + 0.09);
+      osc.frequency.exponentialRampToValueAtTime(28, now + 0.45);
+
+      gain.gain.setValueAtTime(0.95, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+
+      osc.connect(gain);
+      gain.connect(analyser);
+      osc.start(now);
+      osc.stop(now + 0.5);
+    }
+
+    function triggerHiHat() {
+      const now = audioCtx.currentTime;
+      const bufferSize = audioCtx.sampleRate * 0.04;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 7000;
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(analyser);
+      noise.start(now);
+    }
+
+    function startSequencer() {
+      if (beatTimer) clearInterval(beatTimer);
+      const track = playlist[currentTrackIdx];
+      const stepMs = (60 / track.bpm / 2) * 1000; // 8th notes
+
+      beatTimer = setInterval(() => {
+        if (!isPlaying) return;
+        // Hip-Hop 808 pattern: Kick on 0, 3, 6
+        if (step % 8 === 0 || step % 8 === 3 || step % 8 === 6) {
+          trigger808Kick(track.rootFreq);
+        }
+        triggerHiHat();
+        step++;
+      }, stepMs);
+    }
+
+    function toggleAudio() {
+      initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      isPlaying = !isPlaying;
+
+      const playBtn = document.getElementById('play-btn');
+      const heroCta = document.getElementById('hero-play-cta');
+      const mainVinyl = document.getElementById('main-vinyl');
+      const miniVinyl = document.getElementById('mini-vinyl');
+      const dot = document.getElementById('live-dot');
+
+      if (isPlaying) {
+        playBtn.innerText = '⏸ PAUSE';
+        heroCta.innerText = '⏸ Pause 808 Beat';
+        mainVinyl.classList.remove('vinyl-paused');
+        miniVinyl.classList.remove('vinyl-paused');
+        dot.style.background = 'var(--accent)';
+        startSequencer();
+      } else {
+        playBtn.innerText = '▶ PLAY';
+        heroCta.innerText = '▶ Start 808 Beat & Liquid Reactive Mode';
+        mainVinyl.classList.add('vinyl-paused');
+        miniVinyl.classList.add('vinyl-paused');
+        dot.style.background = '#71717a';
+        clearInterval(beatTimer);
+      }
+    }
+
+    function applyTrackTheme(idx) {
+      const t = playlist[idx];
+      document.documentElement.style.setProperty('--accent', t.accent);
+      document.documentElement.style.setProperty('--accent-glow', t.glow);
+      document.getElementById('track-title').innerText = t.title;
+      document.getElementById('track-artist').innerText = t.artist;
+      document.getElementById('bpm-tag').innerText = `${t.bpm} BPM`;
+      document.getElementById('label-era').innerText = t.era;
+
+      targetColA = [...t.colorA];
+      targetColB = [...t.colorB];
+
+      shuffleHardBar();
+      if (isPlaying) startSequencer();
+    }
+
+    function nextTrack() {
+      currentTrackIdx = (currentTrackIdx + 1) % playlist.length;
+      applyTrackTheme(currentTrackIdx);
+    }
+
+    function prevTrack() {
+      currentTrackIdx = (currentTrackIdx - 1 + playlist.length) % playlist.length;
+      applyTrackTheme(currentTrackIdx);
+    }
+
+    /********************************************************************
+     * 4. RENDER LOOP (SHADER + VINYL PULSE + EQ VISUALIZER)
+     ********************************************************************/
+    const eqBars = document.querySelectorAll('.eq-bar');
+    const heroTitle = document.getElementById('hero-title');
+    const mainVinyl = document.getElementById('vinyl-wrapper');
+
+    function renderLoop(now) {
+      let rawBass = 0;
+      if (isPlaying && analyser) {
+        analyser.getByteFrequencyData(freqData);
+        // Grab low-end 808 bins (0, 1, 2)
+        rawBass = ((freqData[0] + freqData[1] + freqData[2]) / (3 * 255));
+
+        // Animate mini-player EQ bars
+        eqBars.forEach((bar, i) => {
+          const val = freqData[i % 12] / 255;
+          bar.style.height = `${Math.max(4, val * 28)}px`;
+          bar.style.background = val > 0.6 ? 'var(--accent)' : 'rgba(255,255,255,0.7)';
+        });
+      }
+
+      smoothThump += (rawBass - smoothThump) * 0.25;
+
+      // Smoothly interpolate artist colors
+      for (let i = 0; i < 3; i++) {
+        currentColA[i] += (targetColA[i] - currentColA[i]) * 0.05;
+        currentColB[i] += (targetColB[i] - currentColB[i]) * 0.05;
+      }
+
+      // Pulse Vinyl & Hero Typography on 808 Kick
+      const scale = 1 + smoothThump * 0.14;
+      mainVinyl.style.transform = `scale(${scale})`;
+      heroTitle.style.transform = `scale(${1 + smoothThump * 0.03})`;
+
+      // Draw WebGL Shader
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform1f(uTime, now * 0.001);
+      gl.uniform1f(uThump, smoothThump);
+      gl.uniform3fv(uColA, currentColA);
+      gl.uniform3fv(uColB, currentColB);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      requestAnimationFrame(renderLoop);
+    }
+    requestAnimationFrame(renderLoop);
+
+    /********************************************************************
+     * 5. COLLISION-DODGING PLAYER ENGINE (INTERSECTION OBSERVER)
+     ********************************************************************/
+    const dodgePlayer = document.getElementById('dodge-player');
+    const sideIndicator = document.getElementById('player-side-indicator');
+    const sections = document.querySelectorAll('section[data-player-side]');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const targetSide = entry.target.getAttribute('data-player-side');
+          if (targetSide === 'left') {
+            dodgePlayer.classList.remove('player-right');
+            dodgePlayer.classList.add('player-left');
+            sideIndicator.innerText = 'DOCK: LEFT ◀';
+          } else {
+            dodgePlayer.classList.remove('player-left');
+            dodgePlayer.classList.add('player-right');
+            sideIndicator.innerText = 'DOCK: RIGHT ▶';
+          }
+        }
+      });
+    }, { threshold: 0.45 });
+
+    sections.forEach(sec => observer.observe(sec));
+  </script>
+</body>
+</html>
